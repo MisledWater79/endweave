@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - ActorEvent from 1.26.20 clients carrying a trailing Fire At Position field that 1.26.10 servers reject.
+- InventorySlot misreading the FullContainerName Dynamic ID as a uvarint instead of an optional uint32, which corrupted the rest of the packet and crashed 1.26.20 clients on dynamic-container interactions (e.g. bundles).
 
 ## [0.4.1] - 2026-05-06
 

@@ -35,17 +35,25 @@ def rewrite_mob_equipment(wrapper: PacketWrapper, direction: Direction) -> None:
 
 
 def rewrite_inventory_slot(wrapper: PacketWrapper) -> None:
-    """InventorySlotPacket (50): rewrite v944 layout into v975 layout."""
+    """InventorySlotPacket (50): rewrite v944 layout into v975 layout.
+
+    v975 wrapped the existing FullContainerName and Storage Item fields in
+    outer Optional<...> bool prefixes and switched the Item descriptors to
+    the new cerealizer encoding. FullContainerName itself is unchanged
+    between v924/v944/v975: uint8 Container Name + Optional<uint32 LE>
+    Dynamic ID.
+    """
     wrapper.passthrough(UVAR_INT)  # Container Id
     wrapper.passthrough(UVAR_INT)  # Slot
 
-    # v944 always sends FullContainerName flat; v975 wraps it in optional bools.
     container_name = wrapper.read(BYTE)
-    dynamic_id = wrapper.read(UVAR_INT)
-    wrapper.write(BOOL, True)  # has Full Container Name
+    has_dynamic_id = wrapper.read(BOOL)
+    dynamic_id = wrapper.read(UINT_LE) if has_dynamic_id else 0
+    wrapper.write(BOOL, True)  # outer Optional<FullContainerName> present
     wrapper.write(BYTE, container_name)
-    wrapper.write(BOOL, True)  # has Dynamic ID
-    wrapper.write(UINT_LE, dynamic_id)
+    wrapper.write(BOOL, has_dynamic_id)
+    if has_dynamic_id:
+        wrapper.write(UINT_LE, dynamic_id)
 
     # v944 always sends Storage Item (with air shortcut); v975 makes it optional.
     storage = wrapper.read(ITEM_INSTANCE)
@@ -55,5 +63,5 @@ def rewrite_inventory_slot(wrapper: PacketWrapper) -> None:
         wrapper.write(BOOL, True)
         wrapper.write(ITEM_INSTANCE_V975, storage)
 
-    # Item is always present in both versions.
+    # NewItem is present in both versions.
     wrapper.map(ITEM_INSTANCE, ITEM_INSTANCE_V975)
