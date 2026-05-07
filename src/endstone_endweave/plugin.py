@@ -1,5 +1,7 @@
 """Endweave plugin - protocol translation for Bedrock Edition."""
 
+from pathlib import Path
+
 from endstone.event import (
     EventPriority,
     PacketReceiveEvent,
@@ -89,7 +91,13 @@ class EndweavePlugin(Plugin):
         elif supported_names:
             self.logger.info(f"Supported client versions: {supported_names[0]}")
 
-        self._pipeline = ProtocolPipeline(self._manager, self._connections, self.logger, debug)
+        self._pipeline = ProtocolPipeline(
+            self._manager,
+            self._connections,
+            self.logger,
+            debug,
+            data_dir=Path(self.data_folder),
+        )
         self.register_events(self)
 
         # bStats metrics (https://bstats.org/plugin/bukkit/Endweave/30345)

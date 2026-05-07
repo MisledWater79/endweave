@@ -9,7 +9,10 @@ See Also:
     com.viaversion.viaversion.protocol.ProtocolPipelineImpl
 """
 
+import re
+import time
 import traceback
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from endstone import Logger
@@ -26,6 +29,9 @@ from .protocol import Protocol
 from .protocol.direction import Direction
 from .protocol.manager import ProtocolManager
 
+_CRASH_DUMP_DIRNAME = "crashes"
+_FILENAME_SAFE = re.compile(r"[^A-Za-z0-9._-]+")
+
 
 class ProtocolPipeline:
     """Intercepts packet events and applies protocol translation.
@@ -38,6 +44,7 @@ class ProtocolPipeline:
         _connections: ConnectionManager for per-player state lookup.
         _logger: Endstone logger instance for error output.
         _debug: Debug handler for filtered packet logging.
+        _crash_dir: Folder where failing-packet payloads are written.
 
     See Also:
         com.viaversion.viaversion.protocol.ProtocolPipelineImpl
@@ -49,11 +56,13 @@ class ProtocolPipeline:
         connections: ConnectionManager,
         logger: Logger,
         debug: DebugHandler | None = None,
+        data_dir: Path | None = None,
     ) -> None:
         self._manager = manager
         self._connections = connections
         self._logger = logger
         self._debug = debug or DebugHandler(logger)
+        self._crash_dir = (data_dir / _CRASH_DUMP_DIRNAME) if data_dir is not None else None
 
     def on_packet_receive(self, event: PacketReceiveEvent) -> None:
         """Handle a serverbound (client->server) packet.
@@ -85,15 +94,14 @@ class ProtocolPipeline:
             try:
                 protocol.transform(Direction.SERVERBOUND, packet_id, wrapper)
             except Exception as exc:
-                err = (
-                    InformativeException(exc)
-                    .set("Direction", "SERVERBOUND")
-                    .set("Packet ID", packet_label(packet_id))
-                    .set("Protocol", protocol.name)
-                    .set("Address", address)
+                self._handle_translation_failure(
+                    exc,
+                    direction=Direction.SERVERBOUND,
+                    packet_id=packet_id,
+                    protocol=protocol,
+                    address=address,
+                    payload=payload,
                 )
-                if err.should_be_printed:
-                    self._logger.error(f"{err.message}\n{traceback.format_exc()}")
                 event.cancel()
                 return
             if wrapper.cancelled:
@@ -151,15 +159,14 @@ class ProtocolPipeline:
             try:
                 protocol.transform(Direction.CLIENTBOUND, packet_id, wrapper)
             except Exception as exc:
-                err = (
-                    InformativeException(exc)
-                    .set("Direction", "CLIENTBOUND")
-                    .set("Packet ID", packet_label(packet_id))
-                    .set("Protocol", protocol.name)
-                    .set("Address", address)
+                self._handle_translation_failure(
+                    exc,
+                    direction=Direction.CLIENTBOUND,
+                    packet_id=packet_id,
+                    protocol=protocol,
+                    address=address,
+                    payload=payload,
                 )
-                if err.should_be_printed:
-                    self._logger.error(f"{err.message}\n{traceback.format_exc()}")
                 event.cancel()
                 return
             if wrapper.cancelled:
@@ -183,6 +190,51 @@ class ProtocolPipeline:
                 connection.client_protocol,
                 len(event.payload),
             )
+
+    def _handle_translation_failure(
+        self,
+        exc: Exception,
+        *,
+        direction: Direction,
+        packet_id: int,
+        protocol: Protocol,
+        address: str,
+        payload: bytes,
+    ) -> None:
+        """Format the failure context, dump the offending payload, and log."""
+        dump_path = self._dump_failed_payload(direction, packet_id, payload)
+
+        err = (
+            InformativeException(exc)
+            .set("Direction", direction.name)
+            .set("Packet ID", packet_label(packet_id))
+            .set("Protocol", protocol.name)
+            .set("Address", address)
+        )
+        if dump_path is not None:
+            err.set("Payload Dump", str(dump_path))
+        if err.should_be_printed:
+            self._logger.error(f"{err.message}\n{traceback.format_exc()}")
+            if dump_path is not None:
+                self._logger.error(
+                    f"Failing packet payload written to {dump_path} -- please attach when reporting."
+                )
+
+    def _dump_failed_payload(self, direction: Direction, packet_id: int, payload: bytes) -> Path | None:
+        """Write the offending payload to a .bin file. Returns its path, or None on failure."""
+        if self._crash_dir is None:
+            return None
+        try:
+            self._crash_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = time.strftime("%Y%m%dT%H%M%S")
+            packet_part = _FILENAME_SAFE.sub("_", packet_label(packet_id))
+            filename = f"{timestamp}_{direction.name}_{packet_part}_{packet_id}.bin"
+            path = self._crash_dir / filename
+            path.write_bytes(payload)
+            return path
+        except Exception as exc:  # noqa: BLE001
+            self._logger.warning(f"Could not write packet dump: {type(exc).__name__}: {exc}")
+            return None
 
     def _get_pipeline(self, connection: "UserConnection") -> list[Protocol]:
         """Build or return the cached protocol pipeline for a connection.
