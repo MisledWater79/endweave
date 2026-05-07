@@ -817,7 +817,7 @@ class TestCraftingRecipeWire:
         wrapper.passthrough(SHAPED_RECIPE)
         assert wrapper.to_bytes() == payload
 
-    def test_shaped_chemistry_has_assume_symmetry_and_requirement(self):
+    def test_shaped_chemistry_has_assume_symmetry_no_requirement(self):
         from endstone_endweave.codec import SHAPED_CHEMISTRY_RECIPE
 
         w = PacketWriter()
@@ -832,12 +832,26 @@ class TestCraftingRecipeWire:
         w.write_string("brewing_stand")
         w.write_varint(0)
         w.write_bool(False)
-        w.write_byte(0)
-        w.write_uvarint(0)
         w.write_uvarint(99)
         payload = w.to_bytes()
         wrapper = PacketWrapper(payload)
         wrapper.passthrough(SHAPED_CHEMISTRY_RECIPE)
+        assert wrapper.to_bytes() == payload
+
+    def test_shapeless_chemistry_no_requirement(self):
+        from endstone_endweave.codec import SHAPELESS_CHEMISTRY_RECIPE
+
+        w = PacketWriter()
+        w.write_string("recipe:chem_shapeless")
+        w.write_uvarint(0)  # ingredients
+        w.write_uvarint(0)  # results
+        w.write_bytes(b"\x04" * 16)
+        w.write_string("brewing_stand")
+        w.write_varint(0)
+        w.write_uvarint(99)
+        payload = w.to_bytes()
+        wrapper = PacketWrapper(payload)
+        wrapper.passthrough(SHAPELESS_CHEMISTRY_RECIPE)
         assert wrapper.to_bytes() == payload
 
     def test_user_data_shapeless_has_requirement(self):

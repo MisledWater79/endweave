@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+- CraftingData decode crash on chemistry recipes: ShapedChemistry and ShapelessChemistry do not carry a RecipeUnlockingRequirement on the wire.
+
 ## [0.4.2] - 2026-05-07
 
 ### Added
