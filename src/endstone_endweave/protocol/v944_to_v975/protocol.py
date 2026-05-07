@@ -1,6 +1,9 @@
 """Protocol factory for v944 (r26_u1) server <- v975 (r26_u2) client."""
 
+from functools import partial
+
 from endstone_endweave.protocol import Protocol
+from endstone_endweave.protocol.direction import Direction
 from endstone_endweave.protocol.mappings.v944_v975 import MAPPINGS
 from endstone_endweave.protocol.packet_ids import PacketId
 from endstone_endweave.rewriter import SoundRewriter
@@ -37,7 +40,7 @@ def create_protocol() -> Protocol:
     sound.register(p)
     p.register_clientbound(PacketId.LEVEL_SOUND_EVENT, rewrite_level_sound_event)
     p.register_clientbound(PacketId.START_GAME, rewrite_start_game)
-    p.register_clientbound(PacketId.ACTOR_EVENT, rewrite_actor_event)
+    p.register_clientbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.CLIENTBOUND))
     p.register_clientbound(PacketId.PLAY_SOUND, rewrite_play_sound)
     p.register_clientbound(PacketId.INVENTORY_SLOT, rewrite_inventory_slot)
     p.register_clientbound(PacketId.PLAYER_EQUIPMENT, rewrite_mob_equipment_clientbound)
@@ -46,6 +49,7 @@ def create_protocol() -> Protocol:
     p.register_serverbound(PacketId.PLAYER_EQUIPMENT, rewrite_mob_equipment_serverbound)
     p.register_serverbound(PacketId.UPDATE_CLIENT_OPTIONS, rewrite_update_client_options)
     p.register_serverbound(PacketId.CLIENT_MOVEMENT_PREDICTION_SYNC, rewrite_client_movement_prediction_sync)
+    p.register_serverbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.SERVERBOUND))
 
     p.cancel_clientbound(
         PacketId.LOCATOR_BAR,  # 341 -- TextureId(int) -> TexturePath(string) + IconSize(Vec2)
