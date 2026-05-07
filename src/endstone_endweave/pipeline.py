@@ -216,9 +216,7 @@ class ProtocolPipeline:
         if err.should_be_printed:
             self._logger.error(f"{err.message}\n{traceback.format_exc()}")
             if dump_path is not None:
-                self._logger.error(
-                    f"Failing packet payload written to {dump_path} -- please attach when reporting."
-                )
+                self._logger.error(f"Failing packet payload written to {dump_path} -- please attach when reporting.")
 
     def _dump_failed_payload(self, direction: Direction, packet_id: int, payload: bytes) -> Path | None:
         """Write the offending payload to a .bin file. Returns its path, or None on failure."""

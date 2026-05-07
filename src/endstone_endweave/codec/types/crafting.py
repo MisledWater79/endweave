@@ -351,7 +351,9 @@ class _ShapedChemistryRecipeType(Type[ShapedChemistryRecipe]):
         writer.write_varint(value.height)
         expected = value.width * value.height
         if len(value.ingredients) != expected:
-            raise ValueError(f"ShapedChemistryRecipe ingredient count {len(value.ingredients)} != width*height {expected}")
+            raise ValueError(
+                f"ShapedChemistryRecipe ingredient count {len(value.ingredients)} != width*height {expected}"
+            )
         for ingredient in value.ingredients:
             RECIPE_INGREDIENT.write(writer, ingredient)
         writer.write_uvarint(len(value.results))
