@@ -11,9 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Failing packet payloads are dumped to `<plugin-data>/crashes/*.bin` and the path is logged so operators can attach the file when reporting issues.
 
 ### Fixed
+- ActorEvent from 1.26.20 clients carrying a trailing Fire At Position field that 1.26.10 servers reject.
+
+## [0.4.1] - 2026-05-06
+
+### Fixed
 - CraftingData packet failing to decode on 1.26.10 servers.
 - ClientMovementPredictionSync from 1.26.20 clients carrying three new attribute floats that 1.26.10 servers reject.
-- ActorEvent from 1.26.20 clients carrying a trailing Fire At Position field that 1.26.10 servers reject.
 
 ## [0.4.0] - 2026-05-06
 
