@@ -1012,3 +1012,19 @@ class MapItemTrackedActorType(enum.IntEnum):
     ENTITY = 0
     BLOCK_ENTITY = 1
     OTHER = 2
+
+
+class PacketViolationType(enum.IntEnum):
+    """PacketViolationType."""
+
+    UNKNOWN = -1
+    PACKET_MALFORMED = 0
+
+
+class PacketViolationSeverity(enum.IntEnum):
+    """PacketViolationSeverity."""
+
+    UNKNOWN = -1
+    WARNING = 0
+    FINAL_WARNING = 1
+    TERMINATING_CONNECTION = 2
