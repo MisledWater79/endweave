@@ -13,8 +13,7 @@ from .handlers.client_movement_prediction_sync import rewrite_client_movement_pr
 from .handlers.crafting_data import rewrite_crafting_data
 from .handlers.item_stack import (
     rewrite_inventory_slot,
-    rewrite_mob_equipment_clientbound,
-    rewrite_mob_equipment_serverbound,
+    rewrite_mob_equipment,
 )
 from .handlers.level_sound_event import rewrite_level_sound_event
 from .handlers.play_sound import rewrite_play_sound
@@ -43,10 +42,10 @@ def create_protocol() -> Protocol:
     p.register_clientbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.CLIENTBOUND))
     p.register_clientbound(PacketId.PLAY_SOUND, rewrite_play_sound)
     p.register_clientbound(PacketId.INVENTORY_SLOT, rewrite_inventory_slot)
-    p.register_clientbound(PacketId.PLAYER_EQUIPMENT, rewrite_mob_equipment_clientbound)
+    p.register_clientbound(PacketId.PLAYER_EQUIPMENT, partial(rewrite_mob_equipment, direction=Direction.CLIENTBOUND))
     p.register_clientbound(PacketId.CRAFTING_DATA, rewrite_crafting_data)
 
-    p.register_serverbound(PacketId.PLAYER_EQUIPMENT, rewrite_mob_equipment_serverbound)
+    p.register_serverbound(PacketId.PLAYER_EQUIPMENT, partial(rewrite_mob_equipment, direction=Direction.SERVERBOUND))
     p.register_serverbound(PacketId.UPDATE_CLIENT_OPTIONS, rewrite_update_client_options)
     p.register_serverbound(PacketId.CLIENT_MOVEMENT_PREDICTION_SYNC, rewrite_client_movement_prediction_sync)
     p.register_serverbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.SERVERBOUND))

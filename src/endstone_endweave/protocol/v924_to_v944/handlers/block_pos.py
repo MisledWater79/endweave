@@ -28,6 +28,7 @@ from endstone_endweave.codec import (
     PacketWrapper,
 )
 from endstone_endweave.codec.types.enums import NoteBlockInstrument
+from endstone_endweave.protocol.direction import Direction
 from endstone_endweave.protocol.mappings.v924_v944 import MAPPINGS
 
 _NOTE_BLOCK_EVENT = 0
@@ -51,26 +52,22 @@ def rewrite_first_net_block_to_block(wrapper: PacketWrapper) -> None:
     wrapper.map(NETWORK_BLOCK_POS, BLOCK_POS)
 
 
-def rewrite_lectern_update_clientbound(wrapper: PacketWrapper) -> None:
-    """LecternUpdate (125) clientbound: NetworkBlockPos -> BlockPos.
+def rewrite_lectern_update(wrapper: PacketWrapper, direction: Direction) -> None:
+    """LecternUpdate (125): swap NetworkBlockPos and BlockPos for the Lectern position.
+
+    Clientbound (v924 -> v944): NetworkBlockPos -> BlockPos.
+    Serverbound (v944 -> v924): BlockPos -> NetworkBlockPos.
 
     Args:
         wrapper: Packet wrapper for LecternUpdate.
+        direction: Whether the packet is clientbound or serverbound.
     """
     wrapper.passthrough(BYTE)  # New page to show
     wrapper.passthrough(BYTE)  # Total Pages
-    wrapper.map(NETWORK_BLOCK_POS, BLOCK_POS)  # Position of Lectern to update
-
-
-def rewrite_lectern_update_serverbound(wrapper: PacketWrapper) -> None:
-    """LecternUpdate (125) serverbound: BlockPos -> NetworkBlockPos.
-
-    Args:
-        wrapper: Packet wrapper for LecternUpdate.
-    """
-    wrapper.passthrough(BYTE)  # New page to show
-    wrapper.passthrough(BYTE)  # Total Pages
-    wrapper.map(BLOCK_POS, NETWORK_BLOCK_POS)  # Position of Lectern to update
+    if direction is Direction.CLIENTBOUND:
+        wrapper.map(NETWORK_BLOCK_POS, BLOCK_POS)  # Position of Lectern to update
+    else:
+        wrapper.map(BLOCK_POS, NETWORK_BLOCK_POS)  # Position of Lectern to update
 
 
 def rewrite_tile_event(wrapper: PacketWrapper) -> None:

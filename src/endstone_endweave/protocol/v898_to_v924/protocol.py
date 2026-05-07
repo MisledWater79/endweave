@@ -1,11 +1,13 @@
 """Protocol factory for v898 (1.21.130) server <- v924 (1.26.0) client."""
 
+from functools import partial
+
 from endstone_endweave.protocol import Protocol
+from endstone_endweave.protocol.direction import Direction
 from endstone_endweave.protocol.mappings.v898_v924 import MAPPINGS
 from endstone_endweave.protocol.packet_ids import PacketId
 from endstone_endweave.protocol.v924_to_v898.handlers.text import (
-    rewrite_text_clientbound,
-    rewrite_text_serverbound,
+    rewrite_text,
 )
 from endstone_endweave.rewriter import SoundRewriter
 
@@ -44,13 +46,13 @@ def create_protocol() -> Protocol:
     """Create a protocol for v898 server <- v924 client."""
     protocol = Protocol(server_protocol=SERVER_PROTOCOL, client_protocol=CLIENT_PROTOCOL)
 
-    protocol.register_serverbound(PacketId.TEXT, rewrite_text_clientbound)
+    protocol.register_serverbound(PacketId.TEXT, partial(rewrite_text, direction=Direction.CLIENTBOUND))
     protocol.register_serverbound(PacketId.SERVERBOUND_DATA_STORE, rewrite_serverbound_data_store)
     protocol.register_serverbound(PacketId.BOOK_EDIT, rewrite_book_edit)
     protocol.register_serverbound(PacketId.SERVERBOUND_DIAGNOSTICS, rewrite_diagnostics)
 
     protocol.register_clientbound(PacketId.START_GAME, rewrite_start_game)
-    protocol.register_clientbound(PacketId.TEXT, rewrite_text_serverbound)
+    protocol.register_clientbound(PacketId.TEXT, partial(rewrite_text, direction=Direction.SERVERBOUND))
     protocol.register_clientbound(PacketId.CLIENTBOUND_DATA_STORE, rewrite_clientbound_data_store)
     protocol.register_clientbound(PacketId.CAMERA_AIM_ASSIST_PRESETS, rewrite_camera_aim_assist_presets)
     protocol.register_clientbound(PacketId.GRAPHICS_PARAMETER_OVERRIDE, rewrite_graphics_parameter_override)

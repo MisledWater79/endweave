@@ -1,6 +1,7 @@
 """Text packet handlers for v924 to v898."""
 
 from endstone_endweave.codec import BOOL, BYTE, STRING, PacketWrapper, TextPacketBodyType, TextPacketType, enum_to_label
+from endstone_endweave.protocol.direction import Direction
 
 _MESSAGE_ONLY_TYPES = (
     TextPacketType.RAW,
@@ -34,56 +35,50 @@ _TEXT_AUTHOR_AND_MESSAGE = _build_label_group(_AUTHOR_AND_MESSAGE_TYPES)
 _TEXT_MESSAGE_AND_PARAMS = _build_label_group(_MESSAGE_AND_PARAMS_TYPES)
 
 
-def rewrite_text_clientbound(wrapper: PacketWrapper) -> None:
-    """Rewrite Text from the v924 wire format to the v898 format.
+def rewrite_text(wrapper: PacketWrapper, direction: Direction) -> None:
+    """Bridge the v924 Text format and the v898 Text format.
+
+    Clientbound (v924 -> v898): inject the per-type label strings ahead of the type byte.
+    Serverbound (v898 -> v924): strip the per-type label strings before the type byte.
 
     Args:
         wrapper: Packet wrapper for Text.
+        direction: Whether the packet is clientbound or serverbound.
     """
     wrapper.passthrough(BOOL)  # Localize?
     kind = wrapper.read(BYTE)
     wrapper.write(BYTE, kind)
 
-    if kind == TextPacketBodyType.MESSAGE_ONLY:
-        text_type = wrapper.read(BYTE)
-        for label in _TEXT_MESSAGE_ONLY[text_type]:
-            wrapper.write(STRING, label)
-        wrapper.write(BYTE, text_type)
-    elif kind == TextPacketBodyType.AUTHOR_AND_MESSAGE:
-        text_type = wrapper.read(BYTE)
-        for label in _TEXT_AUTHOR_AND_MESSAGE[text_type]:
-            wrapper.write(STRING, label)
-        wrapper.write(BYTE, text_type)
-    elif kind == TextPacketBodyType.MESSAGE_AND_PARAMS:
-        text_type = wrapper.read(BYTE)
-        for label in _TEXT_MESSAGE_AND_PARAMS[text_type]:
-            wrapper.write(STRING, label)
-        wrapper.write(BYTE, text_type)
+    if direction is Direction.CLIENTBOUND:
+        if kind == TextPacketBodyType.MESSAGE_ONLY:
+            text_type = wrapper.read(BYTE)
+            for label in _TEXT_MESSAGE_ONLY[text_type]:
+                wrapper.write(STRING, label)
+            wrapper.write(BYTE, text_type)
+        elif kind == TextPacketBodyType.AUTHOR_AND_MESSAGE:
+            text_type = wrapper.read(BYTE)
+            for label in _TEXT_AUTHOR_AND_MESSAGE[text_type]:
+                wrapper.write(STRING, label)
+            wrapper.write(BYTE, text_type)
+        elif kind == TextPacketBodyType.MESSAGE_AND_PARAMS:
+            text_type = wrapper.read(BYTE)
+            for label in _TEXT_MESSAGE_AND_PARAMS[text_type]:
+                wrapper.write(STRING, label)
+            wrapper.write(BYTE, text_type)
+        else:
+            raise ValueError(f"Unknown text kind: {kind}")
     else:
-        raise ValueError(f"Unknown text kind: {kind}")
-
-
-def rewrite_text_serverbound(wrapper: PacketWrapper) -> None:
-    """Rewrite Text from the v898 wire format to the v924 format.
-
-    Args:
-        wrapper: Packet wrapper for Text.
-    """
-    wrapper.passthrough(BOOL)  # Localize?
-    kind = wrapper.read(BYTE)
-    wrapper.write(BYTE, kind)
-
-    if kind == TextPacketBodyType.MESSAGE_ONLY:
-        for _ in range(6):
-            wrapper.read(STRING)
-        wrapper.passthrough(BYTE)
-    elif kind == TextPacketBodyType.AUTHOR_AND_MESSAGE:
-        for _ in range(3):
-            wrapper.read(STRING)
-        wrapper.passthrough(BYTE)
-    elif kind == TextPacketBodyType.MESSAGE_AND_PARAMS:
-        for _ in range(3):
-            wrapper.read(STRING)
-        wrapper.passthrough(BYTE)
-    else:
-        raise ValueError(f"Unknown text kind: {kind}")
+        if kind == TextPacketBodyType.MESSAGE_ONLY:
+            for _ in range(6):
+                wrapper.read(STRING)
+            wrapper.passthrough(BYTE)
+        elif kind == TextPacketBodyType.AUTHOR_AND_MESSAGE:
+            for _ in range(3):
+                wrapper.read(STRING)
+            wrapper.passthrough(BYTE)
+        elif kind == TextPacketBodyType.MESSAGE_AND_PARAMS:
+            for _ in range(3):
+                wrapper.read(STRING)
+            wrapper.passthrough(BYTE)
+        else:
+            raise ValueError(f"Unknown text kind: {kind}")

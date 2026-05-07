@@ -1,13 +1,15 @@
 """Protocol factory for v860 (1.21.124) server <- v898 (1.21.130) client."""
 
+from functools import partial
+
 from endstone_endweave.protocol import Protocol
+from endstone_endweave.protocol.direction import Direction
 from endstone_endweave.protocol.mappings.v860_v898 import MAPPINGS
 from endstone_endweave.protocol.packet_ids import PacketId
 from endstone_endweave.rewriter import ActorEventRewriter, SoundRewriter
 
 from .handlers.animate import (
-    rewrite_animate_clientbound,
-    rewrite_animate_serverbound,
+    rewrite_animate,
 )
 from .handlers.camera_aim_assist import rewrite_camera_aim_assist_presets
 from .handlers.commands import (
@@ -21,8 +23,7 @@ from .handlers.mob_effect import rewrite_mob_effect
 from .handlers.resource_pack_stack import rewrite_resource_pack_stack
 from .handlers.start_game import rewrite_start_game
 from .handlers.text import (
-    rewrite_text_clientbound,
-    rewrite_text_serverbound,
+    rewrite_text,
 )
 
 SERVER_PROTOCOL = 860
@@ -34,10 +35,10 @@ def create_protocol() -> Protocol:
     protocol = Protocol(server_protocol=SERVER_PROTOCOL, client_protocol=CLIENT_PROTOCOL)
 
     protocol.cancel_serverbound(PacketId.SERVERBOUND_DATA_STORE)
-    protocol.register_serverbound(PacketId.ANIMATE, rewrite_animate_serverbound)
+    protocol.register_serverbound(PacketId.ANIMATE, partial(rewrite_animate, direction=Direction.SERVERBOUND))
     protocol.register_serverbound(PacketId.INTERACT, rewrite_interact)
     protocol.register_serverbound(PacketId.COMMAND_REQUEST, rewrite_command_request)
-    protocol.register_serverbound(PacketId.TEXT, rewrite_text_serverbound)
+    protocol.register_serverbound(PacketId.TEXT, partial(rewrite_text, direction=Direction.SERVERBOUND))
 
     sound = SoundRewriter(
         sound_remap=MAPPINGS.sound.shift_up,
@@ -48,10 +49,10 @@ def create_protocol() -> Protocol:
     assert MAPPINGS.actor_event is not None
     ActorEventRewriter(MAPPINGS.actor_event, upgrade=True).register(protocol)
 
-    protocol.register_clientbound(PacketId.ANIMATE, rewrite_animate_clientbound)
+    protocol.register_clientbound(PacketId.ANIMATE, partial(rewrite_animate, direction=Direction.CLIENTBOUND))
     protocol.register_clientbound(PacketId.MOB_EFFECT, rewrite_mob_effect)
     protocol.register_clientbound(PacketId.RESOURCE_PACK_STACK, rewrite_resource_pack_stack)
-    protocol.register_clientbound(PacketId.TEXT, rewrite_text_clientbound)
+    protocol.register_clientbound(PacketId.TEXT, partial(rewrite_text, direction=Direction.CLIENTBOUND))
     protocol.register_clientbound(PacketId.START_GAME, rewrite_start_game)
     protocol.register_clientbound(PacketId.LEGACY_TELEMETRY_EVENT, rewrite_event)
     protocol.register_clientbound(PacketId.AVAILABLE_COMMANDS, rewrite_available_commands)

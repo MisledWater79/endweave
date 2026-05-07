@@ -8,32 +8,30 @@ from endstone_endweave.codec import (
     UVAR_INT64,
     PacketWrapper,
 )
+from endstone_endweave.protocol.direction import Direction
 
 
-def rewrite_mob_equipment_clientbound(wrapper: PacketWrapper) -> None:
-    """Map v944 byte slot fields to v975 uvarint32 (server to client).
+def rewrite_mob_equipment(wrapper: PacketWrapper, direction: Direction) -> None:
+    """MobEquipmentPacket: bridge v944 byte slot fields and v975 uvarint32 fields.
 
-    Args:
-        wrapper: Packet wrapper for MobEquipmentPacket.
-    """
-    wrapper.passthrough(UVAR_INT64)  # Target Runtime ID
-    wrapper.map(ITEM_INSTANCE, ITEM_INSTANCE_V975)  # Item
-    wrapper.map(BYTE, UVAR_INT)  # Slot
-    wrapper.map(BYTE, UVAR_INT)  # Selected Slot
-    wrapper.map(BYTE, UVAR_INT)  # Container ID
-
-
-def rewrite_mob_equipment_serverbound(wrapper: PacketWrapper) -> None:
-    """Map v975 uvarint32 slot fields back to v944 byte (client to server).
+    Clientbound (v944 -> v975): byte slots widened to uvarint32, item upgraded.
+    Serverbound (v975 -> v944): uvarint32 slots truncated back to byte.
 
     Args:
         wrapper: Packet wrapper for MobEquipmentPacket.
+        direction: Whether the packet is clientbound or serverbound.
     """
     wrapper.passthrough(UVAR_INT64)  # Target Runtime ID
-    wrapper.map(ITEM_INSTANCE_V975, ITEM_INSTANCE)  # Item
-    wrapper.map(UVAR_INT, BYTE)  # Slot
-    wrapper.map(UVAR_INT, BYTE)  # Selected Slot
-    wrapper.map(UVAR_INT, BYTE)  # Container ID
+    if direction is Direction.CLIENTBOUND:
+        wrapper.map(ITEM_INSTANCE, ITEM_INSTANCE_V975)  # Item
+        wrapper.map(BYTE, UVAR_INT)  # Slot
+        wrapper.map(BYTE, UVAR_INT)  # Selected Slot
+        wrapper.map(BYTE, UVAR_INT)  # Container ID
+    else:
+        wrapper.map(ITEM_INSTANCE_V975, ITEM_INSTANCE)  # Item
+        wrapper.map(UVAR_INT, BYTE)  # Slot
+        wrapper.map(UVAR_INT, BYTE)  # Selected Slot
+        wrapper.map(UVAR_INT, BYTE)  # Container ID
 
 
 def rewrite_inventory_slot(wrapper: PacketWrapper) -> None:

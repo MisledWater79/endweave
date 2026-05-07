@@ -1,13 +1,13 @@
 """Protocol factory for v898 (1.21.130) server <- v860 (1.21.124) client."""
 
+from functools import partial
+
 from endstone_endweave.protocol import Protocol
+from endstone_endweave.protocol.direction import Direction
 from endstone_endweave.protocol.mappings.v860_v898 import MAPPINGS
 from endstone_endweave.protocol.packet_ids import PacketId
 from endstone_endweave.protocol.v860_to_v898.handlers.animate import (
-    rewrite_animate_clientbound as _animate_v860_to_v898,
-)
-from endstone_endweave.protocol.v860_to_v898.handlers.animate import (
-    rewrite_animate_serverbound as _animate_v898_to_v860,
+    rewrite_animate,
 )
 from endstone_endweave.rewriter import ActorEventRewriter, SoundRewriter
 
@@ -27,11 +27,13 @@ from .handlers.resource_pack_stack import (
 )
 from .handlers.start_game import rewrite_start_game
 from .handlers.text import (
-    rewrite_text_clientbound as _text_v860_to_v898,
+    rewrite_text,
 )
-from .handlers.text import (
-    rewrite_text_serverbound as _text_v898_to_v860,
-)
+
+_animate_v860_to_v898 = partial(rewrite_animate, direction=Direction.CLIENTBOUND)
+_animate_v898_to_v860 = partial(rewrite_animate, direction=Direction.SERVERBOUND)
+_text_v860_to_v898 = partial(rewrite_text, direction=Direction.CLIENTBOUND)
+_text_v898_to_v860 = partial(rewrite_text, direction=Direction.SERVERBOUND)
 
 SERVER_PROTOCOL = 898
 CLIENT_PROTOCOL = 860
