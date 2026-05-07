@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-05-07
+
 ### Added
 - Server-reported PacketViolationWarning is now surfaced as a warning-level log so malformed-packet diagnostics are visible without enabling debug.
 - Failing packet payloads are dumped to `<plugin-data>/crashes/*.bin` and the path is logged so operators can attach the file when reporting issues.
