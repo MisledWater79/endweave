@@ -8,10 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - CraftingData decode crash on chemistry recipes: ShapedChemistry and ShapelessChemistry do not carry a RecipeUnlockingRequirement on the wire.
-- Enchantment table showing no options for 1.26.20 clients on 1.26.10 servers.
-- Locator bar waypoints not appearing for 1.26.20 clients on 1.26.10 servers.
-- Environmental attribute layers (fog, sky tint, etc.) not applying for 1.26.20 clients on 1.26.10 servers.
-- Party state changes from 1.26.20 clients dropped on 1.26.10 servers.
+- For 1.26.20 clients on 1.26.10 servers:
+    - Enchantment table showing no options.
+    - Locator bar waypoints missing.
+    - Environmental attribute layers (fog, sky tint, etc.) not applying.
+    - Party state changes dropped.
 
 ## [0.4.2] - 2026-05-07
 
