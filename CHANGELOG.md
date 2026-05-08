@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - CraftingData decode crash on chemistry recipes: ShapedChemistry and ShapelessChemistry do not carry a RecipeUnlockingRequirement on the wire.
 - Enchantment table showing no options for 1.26.20 clients on 1.26.10 servers.
+- Locator bar waypoints not appearing for 1.26.20 clients on 1.26.10 servers.
 
 ## [0.4.2] - 2026-05-07
 

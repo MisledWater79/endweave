@@ -16,6 +16,7 @@ from .handlers.item_stack import (
     rewrite_mob_equipment,
 )
 from .handlers.level_sound_event import rewrite_level_sound_event
+from .handlers.locator_bar import rewrite_locator_bar
 from .handlers.play_sound import rewrite_play_sound
 from .handlers.player_enchant_options import rewrite_player_enchant_options
 from .handlers.start_game import rewrite_start_game
@@ -46,6 +47,7 @@ def create_protocol() -> Protocol:
     p.register_clientbound(PacketId.PLAYER_EQUIPMENT, partial(rewrite_mob_equipment, direction=Direction.CLIENTBOUND))
     p.register_clientbound(PacketId.CRAFTING_DATA, rewrite_crafting_data)
     p.register_clientbound(PacketId.PLAYER_ENCHANT_OPTIONS, rewrite_player_enchant_options)
+    p.register_clientbound(PacketId.LOCATOR_BAR, rewrite_locator_bar)
 
     p.register_serverbound(PacketId.PLAYER_EQUIPMENT, partial(rewrite_mob_equipment, direction=Direction.SERVERBOUND))
     p.register_serverbound(PacketId.UPDATE_CLIENT_OPTIONS, rewrite_update_client_options)
@@ -53,7 +55,6 @@ def create_protocol() -> Protocol:
     p.register_serverbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.SERVERBOUND))
 
     p.cancel_clientbound(
-        PacketId.LOCATOR_BAR,  # 341 -- TextureId(int) -> TexturePath(string) + IconSize(Vec2)
         PacketId.SERVER_SCRIPT_DEBUG_DRAWER,  # 328 -- ShapeDataPayload -> PrimitiveShapeDataPayload
         PacketId.CLIENTBOUND_ATTRIBUTE_LAYER_SYNC,  # 345 -- Weight switch removed
         PacketId.UPDATE_CLIENT_OPTIONS,
