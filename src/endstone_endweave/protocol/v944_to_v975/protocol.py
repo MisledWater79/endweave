@@ -18,6 +18,7 @@ from .handlers.item_stack import (
 )
 from .handlers.level_sound_event import rewrite_level_sound_event
 from .handlers.locator_bar import rewrite_locator_bar
+from .handlers.party_changed import rewrite_party_changed
 from .handlers.play_sound import rewrite_play_sound
 from .handlers.player_enchant_options import rewrite_player_enchant_options
 from .handlers.start_game import rewrite_start_game
@@ -55,13 +56,13 @@ def create_protocol() -> Protocol:
     p.register_serverbound(PacketId.UPDATE_CLIENT_OPTIONS, rewrite_update_client_options)
     p.register_serverbound(PacketId.CLIENT_MOVEMENT_PREDICTION_SYNC, rewrite_client_movement_prediction_sync)
     p.register_serverbound(PacketId.ACTOR_EVENT, partial(rewrite_actor_event, direction=Direction.SERVERBOUND))
+    p.register_serverbound(PacketId.PARTY_CHANGED, rewrite_party_changed)
 
     p.cancel_clientbound(
         PacketId.SERVER_SCRIPT_DEBUG_DRAWER,  # 328 -- ShapeDataPayload -> PrimitiveShapeDataPayload
     )
     p.cancel_serverbound(
         PacketId.SERVERBOUND_DIAGNOSTICS,
-        PacketId.PARTY_CHANGED,
     )
 
     return p

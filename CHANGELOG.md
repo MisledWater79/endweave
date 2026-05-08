@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Enchantment table showing no options for 1.26.20 clients on 1.26.10 servers.
 - Locator bar waypoints not appearing for 1.26.20 clients on 1.26.10 servers.
 - Environmental attribute layers (fog, sky tint, etc.) not applying for 1.26.20 clients on 1.26.10 servers.
+- Party state changes from 1.26.20 clients dropped on 1.26.10 servers.
 
 ## [0.4.2] - 2026-05-07
 
