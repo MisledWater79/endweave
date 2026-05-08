@@ -9,7 +9,7 @@ from endstone_endweave.codec.writer import PacketWriter
 
 from .enums import CraftingDataEntryType
 from .item import NETWORK_ITEM_INSTANCE_DESCRIPTOR, ItemInstance
-from .primitives import Type
+from .primitives import UUID, MceUUID, Type
 
 
 class ItemDescriptorKind(enum.IntEnum):
@@ -139,7 +139,7 @@ RECIPE_UNLOCKING_REQUIREMENT = _RecipeUnlockingRequirementType()
 @dataclass
 class Recipe:
     recipe_id: str = ""
-    uuid: bytes = b"\x00" * 16
+    uuid: MceUUID = field(default_factory=MceUUID)
     width: int = 0
     height: int = 0
     priority: int = 0
@@ -196,7 +196,7 @@ def _read_shapeless_body(reader: PacketReader, recipe: Recipe) -> None:
     recipe.ingredients = [RECIPE_INGREDIENT.read(reader) for _ in range(n)]
     n = reader.read_uvarint()
     recipe.results = [NETWORK_ITEM_INSTANCE_DESCRIPTOR.read(reader) for _ in range(n)]
-    recipe.uuid = reader.read_bytes(16)
+    recipe.uuid = UUID.read(reader)
     recipe.tag = reader.read_string()
     recipe.priority = reader.read_varint()
     recipe.requirement = RECIPE_UNLOCKING_REQUIREMENT.read(reader)
@@ -211,9 +211,7 @@ def _write_shapeless_body(writer: PacketWriter, value: Recipe) -> None:
     writer.write_uvarint(len(value.results))
     for result in value.results:
         NETWORK_ITEM_INSTANCE_DESCRIPTOR.write(writer, result)
-    if len(value.uuid) != 16:
-        raise ValueError(f"Recipe.uuid must be 16 bytes (got {len(value.uuid)})")
-    writer.write_bytes(value.uuid)
+    UUID.write(writer, value.uuid)
     writer.write_string(value.tag)
     writer.write_varint(value.priority)
     RECIPE_UNLOCKING_REQUIREMENT.write(writer, value.requirement)
@@ -227,7 +225,7 @@ def _read_shaped_body(reader: PacketReader, recipe: ShapedRecipe) -> None:
     recipe.ingredients = [RECIPE_INGREDIENT.read(reader) for _ in range(recipe.width * recipe.height)]
     n = reader.read_uvarint()
     recipe.results = [NETWORK_ITEM_INSTANCE_DESCRIPTOR.read(reader) for _ in range(n)]
-    recipe.uuid = reader.read_bytes(16)
+    recipe.uuid = UUID.read(reader)
     recipe.tag = reader.read_string()
     recipe.priority = reader.read_varint()
     recipe.assume_symmetry = reader.read_bool()
@@ -247,9 +245,7 @@ def _write_shaped_body(writer: PacketWriter, value: ShapedRecipe) -> None:
     writer.write_uvarint(len(value.results))
     for result in value.results:
         NETWORK_ITEM_INSTANCE_DESCRIPTOR.write(writer, result)
-    if len(value.uuid) != 16:
-        raise ValueError(f"Recipe.uuid must be 16 bytes (got {len(value.uuid)})")
-    writer.write_bytes(value.uuid)
+    UUID.write(writer, value.uuid)
     writer.write_string(value.tag)
     writer.write_varint(value.priority)
     writer.write_bool(value.assume_symmetry)
@@ -279,13 +275,11 @@ class _ShapedRecipeType(Type[ShapedRecipe]):
 
 class _MultiRecipeType(Type[MultiRecipe]):
     def read(self, reader: PacketReader) -> MultiRecipe:
-        uuid = reader.read_bytes(16)
+        uuid = UUID.read(reader)
         return MultiRecipe(uuid=uuid, recipe_net_id=reader.read_uvarint())
 
     def write(self, writer: PacketWriter, value: MultiRecipe) -> None:
-        if len(value.uuid) != 16:
-            raise ValueError(f"MultiRecipe.uuid must be 16 bytes (got {len(value.uuid)})")
-        writer.write_bytes(value.uuid)
+        UUID.write(writer, value.uuid)
         writer.write_uvarint(value.recipe_net_id)
 
 
@@ -307,7 +301,7 @@ class _ShapelessChemistryRecipeType(Type[ShapelessChemistryRecipe]):
         recipe.ingredients = [RECIPE_INGREDIENT.read(reader) for _ in range(n)]
         n = reader.read_uvarint()
         recipe.results = [NETWORK_ITEM_INSTANCE_DESCRIPTOR.read(reader) for _ in range(n)]
-        recipe.uuid = reader.read_bytes(16)
+        recipe.uuid = UUID.read(reader)
         recipe.tag = reader.read_string()
         recipe.priority = reader.read_varint()
         recipe.recipe_net_id = reader.read_uvarint()
@@ -321,9 +315,7 @@ class _ShapelessChemistryRecipeType(Type[ShapelessChemistryRecipe]):
         writer.write_uvarint(len(value.results))
         for result in value.results:
             NETWORK_ITEM_INSTANCE_DESCRIPTOR.write(writer, result)
-        if len(value.uuid) != 16:
-            raise ValueError(f"Recipe.uuid must be 16 bytes (got {len(value.uuid)})")
-        writer.write_bytes(value.uuid)
+        UUID.write(writer, value.uuid)
         writer.write_string(value.tag)
         writer.write_varint(value.priority)
         writer.write_uvarint(value.recipe_net_id)
@@ -338,7 +330,7 @@ class _ShapedChemistryRecipeType(Type[ShapedChemistryRecipe]):
         recipe.ingredients = [RECIPE_INGREDIENT.read(reader) for _ in range(recipe.width * recipe.height)]
         n = reader.read_uvarint()
         recipe.results = [NETWORK_ITEM_INSTANCE_DESCRIPTOR.read(reader) for _ in range(n)]
-        recipe.uuid = reader.read_bytes(16)
+        recipe.uuid = UUID.read(reader)
         recipe.tag = reader.read_string()
         recipe.priority = reader.read_varint()
         recipe.assume_symmetry = reader.read_bool()
@@ -359,9 +351,7 @@ class _ShapedChemistryRecipeType(Type[ShapedChemistryRecipe]):
         writer.write_uvarint(len(value.results))
         for result in value.results:
             NETWORK_ITEM_INSTANCE_DESCRIPTOR.write(writer, result)
-        if len(value.uuid) != 16:
-            raise ValueError(f"Recipe.uuid must be 16 bytes (got {len(value.uuid)})")
-        writer.write_bytes(value.uuid)
+        UUID.write(writer, value.uuid)
         writer.write_string(value.tag)
         writer.write_varint(value.priority)
         writer.write_bool(value.assume_symmetry)

@@ -8,6 +8,7 @@ _INT_LE = struct.Struct("<i")
 _UINT_LE = struct.Struct("<I")
 _INT_BE = struct.Struct(">i")
 _INT64_LE = struct.Struct("<q")
+_UINT64_LE = struct.Struct("<Q")
 _FLOAT_LE = struct.Struct("<f")
 _DOUBLE_LE = struct.Struct("<d")
 
@@ -117,6 +118,12 @@ class PacketReader:
     def read_int64_le(self) -> int:
         """Read a signed 64-bit little-endian integer."""
         val: int = _INT64_LE.unpack_from(self._data, self._pos)[0]
+        self._pos += 8
+        return val
+
+    def read_uint64_le(self) -> int:
+        """Read an unsigned 64-bit little-endian integer."""
+        val: int = _UINT64_LE.unpack_from(self._data, self._pos)[0]
         self._pos += 8
         return val
 

@@ -8,6 +8,7 @@ See Also:
 """
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from endstone_endweave.codec.reader import PacketReader
@@ -303,7 +304,37 @@ NETWORK_BLOCK_POS = _NetworkBlockPos()
 BLOCK_POS = _BlockPos()
 VEC3 = _Vec3()
 VEC2 = _Vec2()
-UUID = _Bytes(16)
+
+
+@dataclass
+class MceUUID:
+    """``mce::UUID`` -- two 64-bit unsigned halves, MSB then LSB on the wire.
+
+    Bedrock serializes this as ``uint64 LE most-significant-bits`` followed by
+    ``uint64 LE least-significant-bits``. Using two integers (rather than 16
+    raw bytes or a Python ``uuid.UUID``) keeps the in-memory shape aligned
+    with the wire and avoids the BE/LE byte-swap traps that bit us when
+    synthesising UUIDs.
+    """
+
+    msb: int = 0
+    lsb: int = 0
+
+
+class _MceUUIDType(Type[MceUUID]):
+    """Codec for ``mce::UUID``."""
+
+    def read(self, reader: PacketReader) -> MceUUID:
+        msb = reader.read_uint64_le()
+        lsb = reader.read_uint64_le()
+        return MceUUID(msb=msb, lsb=lsb)
+
+    def write(self, writer: PacketWriter, value: MceUUID) -> None:
+        writer.write_uint64_le(value.msb)
+        writer.write_uint64_le(value.lsb)
+
+
+UUID = _MceUUIDType()
 
 
 class ArrayType(Type[list[_T]]):

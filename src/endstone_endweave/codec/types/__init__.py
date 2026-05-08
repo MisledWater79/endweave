@@ -177,6 +177,7 @@ from .primitives import (
     VEC2,
     VEC3,
     ArrayType,
+    MceUUID,
     OptionalType,
     Type,
 )
@@ -287,6 +288,7 @@ __all__ = [
     "NAMED_COMPOUND_TAG",
     "NETWORK_BLOCK_POS",
     "NamedCompoundTagType",
+    "MceUUID",
     "OPTIONAL_BOOL",
     "OPTIONAL_VEC2",
     "OPTIONAL_VEC3",

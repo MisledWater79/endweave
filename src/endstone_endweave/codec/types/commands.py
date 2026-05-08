@@ -21,6 +21,7 @@ from .primitives import (
     UUID,
     UVAR_INT,
     VAR_INT64,
+    MceUUID,
     Type,
 )
 
@@ -98,7 +99,7 @@ class CommandOrigin:
     """Command origin data from CommandRequestPacket / CommandOutputPacket."""
 
     origin_type: int
-    uuid: bytes
+    uuid: MceUUID
     request_id: str
     player_id: int
 

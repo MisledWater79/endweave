@@ -8,6 +8,7 @@ _INT_LE = struct.Struct("<i")
 _UINT_LE = struct.Struct("<I")
 _INT_BE = struct.Struct(">i")
 _INT64_LE = struct.Struct("<q")
+_UINT64_LE = struct.Struct("<Q")
 _FLOAT_LE = struct.Struct("<f")
 _DOUBLE_LE = struct.Struct("<d")
 
@@ -64,6 +65,10 @@ class PacketWriter:
     def write_int64_le(self, val: int) -> None:
         """Write a signed 64-bit little-endian integer."""
         self._buf.extend(_INT64_LE.pack(val))
+
+    def write_uint64_le(self, val: int) -> None:
+        """Write an unsigned 64-bit little-endian integer."""
+        self._buf.extend(_UINT64_LE.pack(val))
 
     def write_float_le(self, val: float) -> None:
         """Write a 32-bit little-endian IEEE 754 float."""

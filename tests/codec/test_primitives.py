@@ -23,6 +23,7 @@ from endstone_endweave.codec import (
     UVAR_INT64,
     VAR_INT,
     VAR_INT64,
+    MceUUID,
     PacketReader,
     PacketWrapper,
 )
@@ -133,7 +134,7 @@ class TestTypeSingletons:
         _roundtrip(STRING, value)
 
     def test_uuid(self) -> None:
-        _roundtrip(UUID, b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10")
+        _roundtrip(UUID, MceUUID(msb=0x0807060504030201, lsb=0x100F0E0D0C0B0A09))
 
     def test_remaining_bytes(self) -> None:
         _roundtrip(REMAINING_BYTES, b"\xde\xad\xbe\xef")
