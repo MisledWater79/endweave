@@ -43,6 +43,10 @@ select = ["I", "E", "F", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+markers = [
+    "integration: tests that exercise the protocol pipeline end-to-end (multiple components wired together)",
+]
 
 [tool.mypy]
 strict = true

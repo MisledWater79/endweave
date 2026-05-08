@@ -1,18 +1,23 @@
-"""Shared test helpers for packet construction and verification."""
+"""Reusable wire-format builders for tests.
+
+Pure functions that produce raw bytes or write into a PacketWriter for the
+versioned wire formats endweave translates between. Keep these dumb builders
+side-effect-free so they compose cleanly inside parametrized tests.
+"""
 
 from endstone_endweave.codec.reader import PacketReader
 from endstone_endweave.codec.writer import PacketWriter
 
 
 def write_net_block_pos(w: PacketWriter, x: int, y: int, z: int) -> None:
-    """Write a v924 NetworkBlockPos."""
+    """Write a v924 NetworkBlockPos (varint, uvarint, varint)."""
     w.write_varint(x)
     w.write_uvarint(y)
     w.write_varint(z)
 
 
 def write_block_pos(w: PacketWriter, x: int, y: int, z: int) -> None:
-    """Write a v944 BlockPos."""
+    """Write a v944 BlockPos (3x varint)."""
     w.write_varint(x)
     w.write_varint(y)
     w.write_varint(z)
