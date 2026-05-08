@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - Locator bar waypoints missing.
     - Environmental attribute layers (fog, sky tint, etc.) not applying.
     - Party state changes dropped.
+    - Furnaces, smokers, and blast furnaces unable to smelt (recipes are now translated rather than stripped).
 
 ## [0.4.2] - 2026-05-07
 

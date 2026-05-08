@@ -56,8 +56,11 @@ from .commands import (
 )
 from .crafting import (
     CRAFTING_DATA_ENTRY,
+    ITEM_DESCRIPTOR,
     MULTI_RECIPE,
     RECIPE_CODECS,
+    RECIPE_INGREDIENT,
+    RECIPE_UNLOCKING_REQUIREMENT,
     SHAPED_CHEMISTRY_RECIPE,
     SHAPED_RECIPE,
     SHAPELESS_CHEMISTRY_RECIPE,
@@ -66,14 +69,19 @@ from .crafting import (
     SMITHING_TRIM_RECIPE,
     USER_DATA_SHAPELESS_RECIPE,
     CraftingDataEntry,
+    ItemDescriptor,
+    ItemDescriptorKind,
     MultiRecipe,
     Recipe,
+    RecipeIngredient,
+    RecipeUnlockingRequirement,
     ShapedChemistryRecipe,
     ShapedRecipe,
     ShapelessChemistryRecipe,
     ShapelessRecipe,
     SmithingTransformRecipe,
     SmithingTrimRecipe,
+    UnlockingContext,
     UserDataShapelessRecipe,
 )
 from .data_store import (
