@@ -1028,3 +1028,27 @@ class PacketViolationSeverity(enum.IntEnum):
     WARNING = 0
     FINAL_WARNING = 1
     TERMINATING_CONNECTION = 2
+
+
+class AttributeLayerSyncPayloadType(enum.IntEnum):
+    """ClientboundAttributeLayerSyncPacket payload variant tag (uvarint32)."""
+
+    UPDATE_LAYERS = 0
+    UPDATE_SETTINGS = 1
+    UPDATE_ENVIRONMENT = 2
+    REMOVE_ENVIRONMENT = 3
+
+
+class AttributeLayerWeightType(enum.IntEnum):
+    """v944 AttributeLayerSettings.Weight variant tag (uvarint32). Removed in v975."""
+
+    FLOAT = 0
+    STRING = 1
+
+
+class AttributeDataType(enum.IntEnum):
+    """EnvironmentAttributeData polymorphic value variant tag (uvarint32)."""
+
+    BOOL = 0
+    FLOAT = 1
+    COLOR = 2

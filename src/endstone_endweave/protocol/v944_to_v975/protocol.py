@@ -10,6 +10,7 @@ from endstone_endweave.rewriter import SoundRewriter
 
 from .handlers.actor_event import rewrite_actor_event
 from .handlers.client_movement_prediction_sync import rewrite_client_movement_prediction_sync
+from .handlers.clientbound_attribute_layer_sync import rewrite_clientbound_attribute_layer_sync
 from .handlers.crafting_data import rewrite_crafting_data
 from .handlers.item_stack import (
     rewrite_inventory_slot,
@@ -48,6 +49,7 @@ def create_protocol() -> Protocol:
     p.register_clientbound(PacketId.CRAFTING_DATA, rewrite_crafting_data)
     p.register_clientbound(PacketId.PLAYER_ENCHANT_OPTIONS, rewrite_player_enchant_options)
     p.register_clientbound(PacketId.LOCATOR_BAR, rewrite_locator_bar)
+    p.register_clientbound(PacketId.CLIENTBOUND_ATTRIBUTE_LAYER_SYNC, rewrite_clientbound_attribute_layer_sync)
 
     p.register_serverbound(PacketId.PLAYER_EQUIPMENT, partial(rewrite_mob_equipment, direction=Direction.SERVERBOUND))
     p.register_serverbound(PacketId.UPDATE_CLIENT_OPTIONS, rewrite_update_client_options)
@@ -56,8 +58,6 @@ def create_protocol() -> Protocol:
 
     p.cancel_clientbound(
         PacketId.SERVER_SCRIPT_DEBUG_DRAWER,  # 328 -- ShapeDataPayload -> PrimitiveShapeDataPayload
-        PacketId.CLIENTBOUND_ATTRIBUTE_LAYER_SYNC,  # 345 -- Weight switch removed
-        PacketId.UPDATE_CLIENT_OPTIONS,
     )
     p.cancel_serverbound(
         PacketId.SERVERBOUND_DIAGNOSTICS,
