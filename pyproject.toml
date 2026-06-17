@@ -1,19 +1,60 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "endstone-endweave"
-version = "0.4.18"
-description = "Protocol translation plugin for Endstone - 1.26.30 (v1001): full chunk fix - LevelChunk(58) Limited(-2)->Limitless(-1) so the client requests the full column instead of clipping top sub-chunks to air. Diagnostics (render-heightmap strip, cache-off, capture) removed. 1.21.120 - 1.26.30 supported."
+dynamic = ["version"]
+dependencies = ["endstone>=0.11"]
+description = "Protocol translation plugin for Endstone - allows newer clients on older servers"
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["endstone", "plugin", "protocol", "translation"]
 requires-python = ">=3.10"
-dependencies = []
+authors = [{ name = "Vincent", email = "magicdroidx@gmail.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 
-[project.entry-points.endstone]
+[project.optional-dependencies]
+dev = ["pytest", "mypy", "ruff"]
+tools = ["pydot", "pydantic>=2"]
+
+[project.urls]
+Repository = "https://github.com/EndstoneMC/endweave"
+Issues = "https://github.com/EndstoneMC/endweave/issues"
+
+[project.entry-points."endstone"]
 endweave = "endstone_endweave:EndweavePlugin"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/endstone_endweave"]
+[tool.ruff]
+line-length = 120
+exclude = ["src/endstone_endweave/_version.py"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"src/endstone_endweave/config.toml" = "endstone_endweave/config.toml"
+[tool.ruff.lint]
+select = ["I", "E", "F", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+markers = [
+    "integration: tests that exercise the protocol pipeline end-to-end (multiple components wired together)",
+]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+
+[tool.hatch.version]
+source = "vcs"
+raw-options.local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/endstone_endweave/_version.py"
