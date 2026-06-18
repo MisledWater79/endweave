@@ -43,6 +43,7 @@ from endstone_endweave.protocol import Protocol
 from endstone_endweave.protocol.packet_ids import PacketId
 
 from .handlers.boss_event import rewrite_boss_event, rewrite_boss_event_serverbound
+from .handlers.diagnostics import rewrite_diagnostics
 from .handlers.biome_definition_list import rewrite_biome_definition_list
 from .handlers.client_cache_blob_status import rewrite_client_cache_blob_status
 from .handlers.sub_chunk_request import rewrite_sub_chunk_request
@@ -142,6 +143,10 @@ def create_protocol() -> Protocol:
     # 74"), and drops with PACKET_MALFORMED. Convert the v1001 flat wire back to the v975 switch
     # so the server parses it -- the exact inverse of the clientbound flatten above.
     p.register_serverbound(PacketId.BOSS_EVENT, rewrite_boss_event_serverbound)
+    # Serverbound: ServerboundDiagnostics(315) gained a Whisker Scopes list at v1001 after the
+    # three lists present in v975 (Memory Category Values, Entity Diagnostics, System Diagnostics).
+    # Strip the Whisker Scopes tail so the v975 server sees only the three lists it expects.
+    p.register_serverbound(PacketId.SERVERBOUND_DIAGNOSTICS, rewrite_diagnostics)
     # Serverbound: drop the v1001-only PartyDestinationCookieResponse for the older server.
     p.cancel_serverbound(PARTY_DESTINATION_COOKIE_RESPONSE)
 
