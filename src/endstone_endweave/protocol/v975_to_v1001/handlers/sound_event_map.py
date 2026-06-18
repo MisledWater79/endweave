@@ -581,3 +581,6 @@ SOUND_EVENT_NAMES: dict[int, str] = {
     599: 'pushed_by_player',
     600: 'bounce',
 }
+
+# Inverse: v1001 wire string -> v975 numeric id (for serverbound rewrite).
+SOUND_EVENT_IDS: dict[str, int] = {name: id_ for id_, name in SOUND_EVENT_NAMES.items()}

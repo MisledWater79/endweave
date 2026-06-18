@@ -56,7 +56,7 @@ from .handlers.item_stack import (
     rewrite_mob_armour_equipment,
 )
 from .handlers.level_chunk import rewrite_level_chunk
-from .handlers.level_sound_event import rewrite_level_sound_event
+from .handlers.level_sound_event import rewrite_level_sound_event, rewrite_level_sound_event_serverbound
 from .handlers.start_game import rewrite_start_game
 
 SERVER_PROTOCOL = 975
@@ -95,6 +95,11 @@ def create_protocol() -> Protocol:
     # untranslated v975-numeric SoundType makes a 1.26.30 client read the number as a
     # length-prefixed string, desync, and disconnect cleanly on attack -- the crash this fixes.
     p.register_clientbound(PacketId.LEVEL_SOUND_EVENT, rewrite_level_sound_event)
+    # Serverbound: LevelSoundEvent(123) is bidirectional -- a 1.26.30 client sends it
+    # (e.g. for broadcast sounds) with a String SoundType. Without a handler the String
+    # reaches the v944/v975 server which reads it as Varuint32, desyncs, and drops the
+    # player with PACKET_MALFORMED. Convert String -> Varuint32 using the inverse map.
+    p.register_serverbound(PacketId.LEVEL_SOUND_EVENT, rewrite_level_sound_event_serverbound)
     # Clientbound: BossEvent(74) flattened its switch-based v975 wire into a fixed v1001
     # layout -- PlayerUniqueID hoisted to a fixed position, ScreenDarkening dropped, and
     # EventType/Colour/Overlay narrowed Varuint32 -> Uint8. Content-CONDITIONAL (only with a

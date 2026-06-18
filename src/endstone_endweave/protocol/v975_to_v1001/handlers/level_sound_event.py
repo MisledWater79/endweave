@@ -39,7 +39,19 @@ never crashes the parse.
 
 from endstone_endweave.codec import STRING, UVAR_INT, PacketWrapper
 
-from .sound_event_map import SOUND_EVENT_NAMES
+from .sound_event_map import SOUND_EVENT_IDS, SOUND_EVENT_NAMES
+
+
+def rewrite_level_sound_event_serverbound(wrapper: PacketWrapper) -> None:
+    """LevelSoundEvent (123): rewrite v1001 wire string back to numeric SoundType.
+
+    Args:
+        wrapper: Packet wrapper for a serverbound LevelSoundEventPacket.
+    """
+    sound_name = wrapper.read(STRING)  # v1001 String SoundType
+    # Map string back to v975 numeric id; 0 (item.use.on / undefined) on miss.
+    wrapper.write(UVAR_INT, SOUND_EVENT_IDS.get(sound_name, 0))
+    wrapper.passthrough_all()
 
 
 def rewrite_level_sound_event(wrapper: PacketWrapper) -> None:
