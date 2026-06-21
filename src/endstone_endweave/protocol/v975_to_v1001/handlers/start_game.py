@@ -33,61 +33,59 @@ from endstone_endweave.codec import (
     VAR_INT64,
     VEC2,
     VEC3,
+    UUID,
     PacketWrapper,
 )
 
 
 def rewrite_start_game(wrapper: PacketWrapper) -> None:
     """Upgrade a v975-format clientbound StartGame to v1001 wire format."""
-    # Header (identical v944/v975/v1001)
-    wrapper.passthrough(VAR_INT64)   # uniqueEntityId
-    wrapper.passthrough(UVAR_INT64)  # runtimeEntityId
-    wrapper.passthrough(VAR_INT)     # playerGameType
-    wrapper.passthrough(VEC3)        # playerPosition
-    wrapper.passthrough(VEC2)        # rotation
 
-    # Level settings: pass the full v924/v944 body, then INSERT the two v1001 additions.
-    wrapper.passthrough(LEVEL_SETTINGS_V944)
-    wrapper.write(VAR_INT, 0)        # serverEditorConnectionPolicy (NEW v1001)
-    wrapper.write(BOOL, False)       # allowAnonymousBlockDropsInEditorWorlds (NEW v1001)
+    wrapper.passthrough(VAR_INT64)  # Entity ID
+    wrapper.passthrough(UVAR_INT64)  # Runtime ID
+    wrapper.passthrough(VAR_INT)  # Game Type
+    wrapper.passthrough(VEC3)  # Position
+    wrapper.passthrough(VEC2)  # Rotation
 
-    # Mid fields (Level ID ... block-registry checksum); wire-identical, checksum zeroed.
-    wrapper.passthrough(STRING)      # levelId
-    wrapper.passthrough(STRING)      # levelName
-    wrapper.passthrough(STRING)      # premiumWorldTemplateId
-    wrapper.passthrough(BOOL)        # isTrial
-    wrapper.passthrough(VAR_INT)     # movement.rewindHistorySize
-    wrapper.passthrough(BOOL)        # movement.serverAuthoritativeBlockBreaking
-    wrapper.passthrough(INT64_LE)    # currentTick
-    wrapper.passthrough(VAR_INT)     # enchantmentSeed
-    block_prop_count = wrapper.passthrough(UVAR_INT)  # blockProperties
+    # Read LevelSettings (v975 layout)
+    settings = wrapper.read(LEVEL_SETTINGS_V944)
+    # Write LevelSettings
+    wrapper.write(LEVEL_SETTINGS_V944, settings)
+
+    # Inject the 2 new LevelSettings fields introduced in v1001
+    wrapper.write(VAR_INT, 0)  # ServerEditorConnectionPolicy
+    wrapper.write(BOOL, False)  # AllowAnonymousBlockDropsInEditorWorlds
+
+    wrapper.passthrough(STRING)  # Level ID
+    wrapper.passthrough(STRING)  # Level Name
+    wrapper.passthrough(STRING)  # Template Content Identity
+    wrapper.passthrough(BOOL)  # Is Trial?
+    wrapper.passthrough(VAR_INT)  # Movement Settings.RewindHistorySize
+    wrapper.passthrough(BOOL)  # Movement Settings.ServerAuthBlockBreaking
+    wrapper.passthrough(INT64_LE)  # Level Current Time
+    wrapper.passthrough(VAR_INT)  # Enchantment Seed
+
+    block_prop_count = wrapper.passthrough(UVAR_INT)  # Block Properties
     for _ in range(block_prop_count):
         wrapper.passthrough(STRING)
         wrapper.passthrough(NAMED_COMPOUND_TAG)
-    wrapper.passthrough(STRING)              # multiplayerCorrelationId
-    wrapper.passthrough(BOOL)                # inventoriesServerAuthoritative
-    wrapper.passthrough(STRING)              # serverEngine
-    wrapper.passthrough(NAMED_COMPOUND_TAG)  # playerPropertyData
-    wrapper.read(INT64_LE)
-    wrapper.write(INT64_LE, 0)               # zero block-registry checksum
 
-    # Region after the checksum: worldTemplateId(16 bytes) + 3 bools, then INSERT isLoggingChat.
-    wrapper.passthrough(INT64_LE)    # worldTemplateId bytes [0:8]
-    wrapper.passthrough(INT64_LE)    # worldTemplateId bytes [8:16]
-    # clientSideGenerationEnabled: FORCE False for translated 1.26.30 clients. The server
-    # sets it true (client-side-chunk-generation-enabled=true), which lets a native client
-    # procedurally generate visual chunks beyond the authoritative radius. But a 1.26.30
-    # client's worldgen cannot reproduce this 1.26.12 server world, so it renders huge bands
-    # of its own empty/divergent terrain while the server keeps real collision (mobs path on
-    # invisible ground). Forcing it off makes the client rely on server-streamed chunks,
-    # which render correctly (the hashed block palette resolves 100% v944->v1001). Native
-    # v944 clients are unaffected -- only this translated wire is overridden.
-    wrapper.read(BOOL)               # clientSideGenerationEnabled (discard server's true)
-    wrapper.write(BOOL, False)
-    wrapper.passthrough(BOOL)        # blockNetworkIdsHashed
-    wrapper.passthrough(BOOL)        # networkPermissions.serverAuthSounds
-    wrapper.write(BOOL, False)       # isLoggingChat (NEW v1001)
+    wrapper.passthrough(STRING)  # Multiplayer Correlation Id
+    wrapper.passthrough(BOOL)  # Enable Item Stack Net Manager
+    wrapper.passthrough(STRING)  # Server version
+    wrapper.passthrough(NAMED_COMPOUND_TAG)  # Player Property Data
 
-    # serverConfigurationJoinInfo (optional, normally absent) + serverId/scenarioId/
-    # worldId/ownerId are wire-identical v975->v1001 -> copy verbatim.
-    wrapper.passthrough_all()
+    # Zero checksum
+    wrapper.read(INT64_LE)  # Server Block Type Registry Checksum
+    wrapper.write(INT64_LE, 0)  # zero checksum to skip validation
+
+    # Passthrough the fields before IsLoggingChat
+    wrapper.passthrough(UUID)  # World Template ID
+    wrapper.passthrough(BOOL)  # Client Side Generation
+    wrapper.passthrough(BOOL)  # Use Block Network ID Hashes
+    wrapper.passthrough(BOOL)  # Server Authoritative Sound
+
+    # Inject the new IsLoggingChat field introduced in v1001
+    wrapper.write(BOOL, False)  # IsLoggingChat
+
+    wrapper.passthrough_all()  # remaining fields are wire-identical

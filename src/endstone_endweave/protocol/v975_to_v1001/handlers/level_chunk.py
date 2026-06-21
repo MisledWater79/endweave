@@ -1,4 +1,4 @@
-"""Clientbound LevelChunk(58 / FullChunkData) handler for the v975 -> v1001 delta.
+"""LevelChunk(58) v975 server -> v1001 client.
 
 Fixes a 1.26.30 ("Chaos Cubed") client that renders the TOP sub-chunks of every
 column as AIR. The v944/v975 server streams chunks in sub-chunk-request "Limited"
@@ -56,19 +56,15 @@ def rewrite_level_chunk(wrapper: PacketWrapper) -> None:
     Args:
         wrapper: Packet wrapper for a clientbound LevelChunk (FullChunkData) packet.
     """
-    wrapper.passthrough(VAR_INT)  # Position X
-    wrapper.passthrough(VAR_INT)  # Position Z
+    wrapper.passthrough(VAR_INT)  # Chunk X
+    wrapper.passthrough(VAR_INT)  # Chunk Z
     wrapper.passthrough(VAR_INT)  # Dimension
 
-    sub_chunk_count = wrapper.read(UVAR_INT)  # SubChunkCount (request-mode sentinel or count)
+    sub_chunk_count = wrapper.read(UVAR_INT)
     if sub_chunk_count == _SUB_CHUNK_REQUEST_MODE_LIMITED:
-        # Limited: drop the uint16 HighestSubChunk cap and switch to Limitless so the
-        # client requests the full column height (server then fills every section).
-        wrapper.read(USHORT_LE)  # HighestSubChunk -- read and DISCARD
+        wrapper.read(USHORT_LE)  # HighestSubChunk - used for older clients
         wrapper.write(UVAR_INT, _SUB_CHUNK_REQUEST_MODE_LIMITLESS)
     else:
-        # Limitless (-1) or a legacy explicit positive count -- leave untouched.
         wrapper.write(UVAR_INT, sub_chunk_count)
 
-    # CacheEnabled + BlobHashes (cache mode) + RawPayload -- copy verbatim.
     wrapper.passthrough_all()

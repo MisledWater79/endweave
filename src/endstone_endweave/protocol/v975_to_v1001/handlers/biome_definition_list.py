@@ -70,111 +70,111 @@ def _write_chunk_gen_v1001(wrapper: PacketWrapper, data: BiomeDefinitionChunkGen
     ReplacementsData?[], VillageType?, SurfaceBuilder?, SubsurfaceBuilder?. The
     inline v975 surface span migrates into SurfaceBuilder.
     """
-    w = wrapper.writer
+    writer = wrapper.writer
 
     # Climate? (single)
     if data.climate is not None:
-        BOOL.write(w, True)
-        _CLIMATE.write(w, data.climate)
+        BOOL.write(writer, True)
+        _CLIMATE.write(writer, data.climate)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # ConsolidatedFeatures?[] (bool + uvarint count + N)
     if data.consolidated_features is not None:
-        BOOL.write(w, True)
-        UVAR_INT.write(w, len(data.consolidated_features))
+        BOOL.write(writer, True)
+        UVAR_INT.write(writer, len(data.consolidated_features))
         for cf in data.consolidated_features:
-            _CONSOLIDATED_FEATURE.write(w, cf)
+            _CONSOLIDATED_FEATURE.write(writer, cf)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # MountainParameters? (single)
     if data.mountain_params is not None:
-        BOOL.write(w, True)
-        _MOUNTAIN_PARAMS.write(w, data.mountain_params)
+        BOOL.write(writer, True)
+        _MOUNTAIN_PARAMS.write(writer, data.mountain_params)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # SurfaceMaterialAdjustments?[] (endweave: biome_elements; bool + count + N)
     if data.biome_elements is not None:
-        BOOL.write(w, True)
-        UVAR_INT.write(w, len(data.biome_elements))
+        BOOL.write(writer, True)
+        UVAR_INT.write(writer, len(data.biome_elements))
         for be in data.biome_elements:
-            _BIOME_ELEMENT.write(w, be)
+            _BIOME_ELEMENT.write(writer, be)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # --- v975 inline surface span REMOVED here; migrated to SurfaceBuilder below ---
 
     # OverworldRules? (single)
     if data.overworld_gen_rules is not None:
-        BOOL.write(w, True)
-        _OVERWORLD_GEN_RULES.write(w, data.overworld_gen_rules)
+        BOOL.write(writer, True)
+        _OVERWORLD_GEN_RULES.write(writer, data.overworld_gen_rules)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # MultiNoiseRules? (single)
     if data.multinoise_gen_rules is not None:
-        BOOL.write(w, True)
-        _MULTINOISE_GEN_RULES.write(w, data.multinoise_gen_rules)
+        BOOL.write(writer, True)
+        _MULTINOISE_GEN_RULES.write(writer, data.multinoise_gen_rules)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # LegacyRules?[] (endweave wraps the inner slice; bool + (count + N))
     if data.legacy_world_gen_rules is not None:
-        BOOL.write(w, True)
-        _LEGACY_WORLD_GEN_RULES.write(w, data.legacy_world_gen_rules)
+        BOOL.write(writer, True)
+        _LEGACY_WORLD_GEN_RULES.write(writer, data.legacy_world_gen_rules)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # ReplacementsData?[] (bool + uvarint count + N)
     if data.biome_replacement_data is not None:
-        BOOL.write(w, True)
-        UVAR_INT.write(w, len(data.biome_replacement_data))
+        BOOL.write(writer, True)
+        UVAR_INT.write(writer, len(data.biome_replacement_data))
         for brd in data.biome_replacement_data:
-            _BIOME_REPLACEMENT_DATA.write(w, brd)
+            _BIOME_REPLACEMENT_DATA.write(writer, brd)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # VillageType? (single optional uint8) -- position unchanged from v975
     if data.village_type is not None:
-        BOOL.write(w, True)
-        w.write_bytes(bytes((data.village_type & 0xFF,)))
+        BOOL.write(writer, True)
+        writer.write_byte(data.village_type & 0xFF)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
 
     # SurfaceBuilder: Optional[BiomeSurfaceBuilder] -- NEW at v1001. Always present:
     # the v975 surface span is unconditionally serialised, so the faithful v1001 form
     # wraps it in a present SurfaceBuilder.
-    BOOL.write(w, True)  # SurfaceBuilder present
+    BOOL.write(writer, True)  # SurfaceBuilder present
     #   SurfaceMaterials? (single)
     if data.surface_material is not None:
-        BOOL.write(w, True)
-        _SURFACE_MATERIAL.write(w, data.surface_material)
+        BOOL.write(writer, True)
+        _SURFACE_MATERIAL.write(writer, data.surface_material)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
     #   4 bools: HasDefaultOverworld / HasSwamp / HasFrozenOcean / HasEnd
-    BOOL.write(w, data.flag1)
-    BOOL.write(w, data.flag2)
-    BOOL.write(w, data.flag3)
-    BOOL.write(w, data.flag4)
+    BOOL.write(writer, data.flag1)
+    BOOL.write(writer, data.flag2)
+    BOOL.write(writer, data.flag3)
+    BOOL.write(writer, data.flag4)
     #   MesaSurface? (single)
     if data.mesa_surface is not None:
-        BOOL.write(w, True)
-        _MESA_SURFACE.write(w, data.mesa_surface)
+        BOOL.write(writer, True)
+        _MESA_SURFACE.write(writer, data.mesa_surface)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
     #   CappedSurface? (single)
     if data.capped_surface is not None:
-        BOOL.write(w, True)
-        _CAPPED_SURFACE.write(w, data.capped_surface)
+        BOOL.write(writer, True)
+        _CAPPED_SURFACE.write(writer, data.capped_surface)
     else:
-        BOOL.write(w, False)
+        BOOL.write(writer, False)
     #   NoiseGradientSurface? -- NEW; a v975 server never produces it -> absent
-    BOOL.write(w, False)
+    BOOL.write(writer, False)
 
     # SubsurfaceBuilder: Optional[BiomeSurfaceBuilder] -- NEW; v975 has none -> absent
-    BOOL.write(w, False)
+    BOOL.write(writer, False)
 
 
 def rewrite_biome_definition_list(wrapper: PacketWrapper) -> None:
@@ -189,7 +189,7 @@ def rewrite_biome_definition_list(wrapper: PacketWrapper) -> None:
             StringList boundary (model/byte mismatch) -- surfaces a loud failure +
             payload dump instead of emitting a malformed list.
     """
-    w = wrapper.writer
+    writer = wrapper.writer
     biome_count = wrapper.passthrough(UVAR_INT)
 
     for _ in range(biome_count):
@@ -199,28 +199,28 @@ def rewrite_biome_definition_list(wrapper: PacketWrapper) -> None:
         biome = wrapper.read(BIOME_DEFINITION_V924)
 
         # Re-emit the header (unchanged v975/v1001 order).
-        SHORT_LE.write(w, biome.short1)  # BiomeID
-        FLOAT_LE.write(w, biome.float1)
-        FLOAT_LE.write(w, biome.float2)
-        FLOAT_LE.write(w, biome.float3)
-        FLOAT_LE.write(w, biome.float4)
-        FLOAT_LE.write(w, biome.float5)
-        INT_LE.write(w, biome.int1)  # MapWaterColour
-        BOOL.write(w, biome.flag)  # Rain
+        SHORT_LE.write(writer, biome.short1)  # BiomeID
+        FLOAT_LE.write(writer, biome.float1)
+        FLOAT_LE.write(writer, biome.float2)
+        FLOAT_LE.write(writer, biome.float3)
+        FLOAT_LE.write(writer, biome.float4)
+        FLOAT_LE.write(writer, biome.float5)
+        INT_LE.write(writer, biome.int1)  # MapWaterColour
+        BOOL.write(writer, biome.flag)  # Rain
         # Tags? (bool + count + ushort[])
         if biome.tags is not None:
-            BOOL.write(w, True)
-            UVAR_INT.write(w, len(biome.tags))
+            BOOL.write(writer, True)
+            UVAR_INT.write(writer, len(biome.tags))
             for tag in biome.tags:
-                USHORT_LE.write(w, tag)
+                USHORT_LE.write(writer, tag)
         else:
-            BOOL.write(w, False)
+            BOOL.write(writer, False)
         # ChunkGeneration? -- rewritten into v1001 shape.
         if biome.chunk_gen_data is not None:
-            BOOL.write(w, True)
+            BOOL.write(writer, True)
             _write_chunk_gen_v1001(wrapper, biome.chunk_gen_data)
         else:
-            BOOL.write(w, False)
+            BOOL.write(writer, False)
 
     # Trailing StringList (shared dictionary), unchanged v975<->v1001. Read it
     # explicitly and copy through so we can assert the whole packet aligned.
