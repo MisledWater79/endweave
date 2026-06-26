@@ -47,7 +47,6 @@ from endstone_endweave.protocol.packet_ids import PacketId
 
 from .handlers.boss_event import rewrite_boss_event, rewrite_boss_event_serverbound
 from .handlers.diagnostics import rewrite_diagnostics
-from .handlers.biome_definition_list import rewrite_biome_definition_list
 from .handlers.client_cache_blob_status import rewrite_client_cache_blob_status
 from .handlers.sub_chunk_request import rewrite_sub_chunk_request
 from .handlers.inventory_transaction import (
@@ -75,7 +74,6 @@ def create_protocol() -> Protocol:
     p = Protocol(server_protocol=SERVER_PROTOCOL, client_protocol=CLIENT_PROTOCOL, name="v975_to_v1001")
 
     p.register_clientbound(PacketId.START_GAME, rewrite_start_game)
-    # p.register_clientbound(PacketId.BIOME_DEFINITION_LIST, rewrite_biome_definition_list)
     p.register_clientbound(PacketId.INVENTORY_CONTENT, rewrite_inventory_content)
     p.register_clientbound(PacketId.MOB_ARMOR_EQUIPMENT, rewrite_mob_armour_equipment)
     p.register_clientbound(PacketId.LEVEL_SOUND_EVENT, partial(rewrite_level_sound_event, direction=Direction.CLIENTBOUND))
